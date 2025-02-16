@@ -3,6 +3,7 @@
 env/
 Wildlife.mp4
 video-search-frontend/
+pinecone_wrapper.py
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
