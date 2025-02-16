@@ -1,3 +1,8 @@
+.env
+.cache
+env/
+Wildlife.mp4
+video-search-frontend/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

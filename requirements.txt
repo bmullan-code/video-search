@@ -1,0 +1,12 @@
+pinecone
+google-cloud-aiplatform
+python-dotenv
+pydantic
+pydantic-ai
+google-cloud
+moviepy
+fastapi
+uvicorn
+python-multipart
+
+
