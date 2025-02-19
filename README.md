@@ -1,51 +1,70 @@
 # video-search
-video-search
+Video-search demo using vector search
 
-# setup
+# Setup
 
-## backend
-- change into video-search directory
+## Backend
+- Change into video-search directory
+```bash
 cd video-search
-- create a virtual environment
+```
+- create and activate a virtual environment
+```bash
 python -m venv env
-. ./env/bin/activate
+source ./env/bin/activate
+```
+- Install dependencies
+```bash
 pip install -r requirements.txt
+```
 
-## frontend
+## Frontend
 - change into video-search/video-search-frontend directory
+```bash
 cd video-search/video-search-frontend
+```
 - install dependencies
+```bash
 npm install
-
+```
 
 # configuration
 
-- copy the .env.template
+- copy the .env.template to environment variables
+```bash
 cp .env.template .env
+```
 
 - edit the .env file and set your project id, location, bucket name etc. 
 
 # setup videos
 
-- upload your mp4 files to the bucket specified in .env (copy to top level path)
+- upload your mp4 files to the bucket specified in .env 
 - bucket must have read only public access (videos are served from public url)
 
 - edit the main.py and add your list of videos
 - run the python script, this will create embeddings for each video and store them in vector search
+```bash
 python main.py 
-
-# running 
+```
+# Running 
 
 ## backend
 to start the backend service 
 
 - change into video-search directory
-- run 'uvicorn service:app --reload'
+- run 
+```bash
+uvicorn service:app --reload
+```
 
-## frontend
+## Frontend
 
 to run the front end (from a different terminal session)
 
 - change into video-search/video-search-frontend directory
-- run 'npm start'
-- browse to http://localhost:3000
+- run 
+```bash
+npm start
+```
+- browse to [http://localhost:3000](http://localhost:3000)
