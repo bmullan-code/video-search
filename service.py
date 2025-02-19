@@ -1,19 +1,22 @@
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from video_path import VideoPath
 from video_embedding import VideoEmbedding
-from vector_search_wrapper import VectorSearch
+from vector_search_wrapper import vs
 from chromadb_wrapper import cdb
 from video_search_results import VideoSearchResults
 from storage_wrapper import storage  # Assuming you have a storage_wrapper module
 from video_path import VideoPath
-import json
+import json, os
 import uvicorn
 
 # prompt:
 # create a fastapi interface to expose a set of video search rest methods
 
+
+load_dotenv()
 app = FastAPI(title="Video Search API")
 
 origins = [
@@ -31,7 +34,7 @@ app.add_middleware(
 )
 
 ve = VideoEmbedding()
-vs = VectorSearch()
+vector_store = vs if os.environ["VECTOR_STORE"] == "VECTOR_SEARCH" else cdb
 
 @app.post("/process_video/", status_code=201)
 async def process_video_route(file: UploadFile = File(...)):
@@ -75,7 +78,7 @@ async def search_by_text(text: str, top_k: int = 10):
     try:
         text_emb = ve.get_text_embedding(text=text)
         # results = vs.query(vector=text_emb, top_k=top_k)
-        results = cdb.query(vector=text_emb, top_k=top_k)
+        results = vector_store.query(vector=text_emb, top_k=top_k)
         vsr = VideoSearchResults(results)
         return vsr.get_results()
     except Exception as e:
@@ -90,11 +93,12 @@ async def search_by_image(file: UploadFile = File(...), top_k: int = 10):
             f.write(contents)
 
         image_emb = ve.get_image_embedding(image_path=f"{storage.cache}/{file.filename}")
-        results = cdb.query(image_emb,top_k=top_k)
+        results = vector_store.query(image_emb,top_k=top_k)
         vsr = VideoSearchResults(results)
         return vsr.get_results()
 
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=f"Error searching by image: {e}")
 
 @app.get("/video/{filename}") # updated route to handle full GCS URI
