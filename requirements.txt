@@ -1,12 +1,11 @@
-pinecone
+google-cloud
+google-genai
 google-cloud-aiplatform
 python-dotenv
 pydantic
-pydantic-ai
-google-cloud
 moviepy
 fastapi
 uvicorn
 python-multipart
-
-
+chromadb
+pinecone

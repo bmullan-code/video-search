@@ -5,11 +5,15 @@ from vector_search_wrapper import VectorSearch
 from storage_wrapper import storage
 from video_search_results import VideoSearchResults
 import json
-     
-ve = VideoEmbedding()
-# pc = PineconeWrapper()
-vs = VectorSearch()
+from chromadb_wrapper import cdb
+from vector_search_wrapper import vs
+from video_transcript import VideoTranscript
+from dotenv import load_dotenv
 
+load_dotenv()
+     
+vector_store = vs if (os.environ["VECTOR_STORE"] == "VECTOR_SEARCH") else cdb
+ve = VideoEmbedding()
 
 def get_or_create_video_embedding(vpath: VideoPath):
 
@@ -23,66 +27,21 @@ def get_or_create_video_embedding(vpath: VideoPath):
         storage.write_json(video_emb, vpath.file_name_json())
         return video_emb
 
-# def process_video(vpath: VideoPath):
-#     video_emb = get_or_create_video_embedding(vpath=vpath)
-
-#     print("length of embedding: ", len(video_emb))
-#     print("length of embedding: ", len(video_emb[0]["embedding"]))
-#     print("First five values of the first segment are: ", video_emb[0]["embedding"][:5])
-
-#     records = [
-#         { 
-#             "id" : f"{vpath.file_name()}:{ve['startOffsetSec']}:{ve['endOffsetSec']}",
-#             "values" : ve["embedding"],
-#             "metadata" : {
-#                 "startOffsetSec" : ve["startOffsetSec"],
-#                 "endOffsetSec" : ve["endOffsetSec"],
-#                 "videoPath" : vpath.path(),
-#                 "publicUrl" : vpath.public_url(),
-#                 "fileName" : vpath.file_name()
-#             }
-#         }
-#         for ve in video_emb
-#     ]
-#     vs.insert(records=records,vpath)
-
-def insert_video_to_vector_search(vpath: VideoPath):
+def process_video(vpath: VideoPath):
+    print(f"processing:{vpath.path()}")
     video_emb = get_or_create_video_embedding(vpath=vpath)
-    vs.insert(embeddings=video_emb,vpath=vpath)
+    vector_store.insert(embeddings=video_emb)
+    # create transcript (using gemini)
+    video_transcript = VideoTranscript(video_path=vpath).create()
 
-# insert_video_to_vector_search(vpath=VideoPath("Wildlife.mp4"))
-# insert_video_to_vector_search(vpath=VideoPath("sundar.mp4"))
-# insert_video_to_vector_search(vpath=VideoPath("shannon.mp4"))
+    # todo - rag based on transcript (chunk into ~30 second blocks) (filter to select transcript search)
+    # todo - hybrid search based on transcript (get all transcript segments around a segment (min 4 sec) and store with video embeddings)
+    # todo - frame metadata extraction using gemini (store metadata with embeddings ?) filter based on meta data
+    # todo - add meta data based on image search in frame eg. a particular person, object, brand etc. 
 
-text_emb = ve.get_text_embedding(text="road")
-results = vs.query(vector=text_emb,top_k=10)
-for r in results:
-    print(r)
+videos = ["Wildlife.mp4","sundar.mp4","shannon.mpr"]
 
-vsr = VideoSearchResults(results)
-[ print(vsr) for vsr in vsr.get_results() ]
-
-
-
-
-# process_video(vpath=VideoPath("sundar.mp4"))
-
-# text_emb = ve.get_text_embedding(text="dog")
-# results = pc.query(vector=text_emb,namespace="video",top_k=10)
-# for r in results.matches:
-#     print(r["id"],"\t",r["score"])
-
-# image_emb = ve.get_image_embedding(image_path=VideoPath("sundar.webp").path())
-# results = pc.query(vector=image_emb,namespace="video",top_k=10)
-# for r in results.matches:
-#     print(r["id"],"\t",r["score"])
-
-# image_emb = ve.get_image_embedding(image_path=VideoPath("gannet.jpg").path())
-
-# results = pc.query(vector=image_emb,namespace="video")
-
-# print(
-#     [
-#         {r["id"], r["score"]} for r in results.matches
-#     ]
-# )   
+if __name__ == "__main__":
+    for video in videos:
+        video_path = VideoPath(video)
+        process_video(video_path)

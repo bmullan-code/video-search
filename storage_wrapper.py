@@ -9,6 +9,11 @@ load_dotenv()
 
 class Storage:
 
+    # initialized with a project id, location and bucketname. Assumes an instance per 
+    # bucket managed. 
+    # certain operations will store copies of the gcs blob in the .cache directory
+    # does not support paths in the bucket (ie. files are read and written to top level
+    # bucket location)
     def __init__(self, 
         project = os.environ["PROJECT_ID"], 
         location = os.environ["LOCATION"], 
@@ -20,12 +25,15 @@ class Storage:
         self.location = location 
         self.client = storage.Client(project=self.project)
         self.bucket = self.client.bucket(self.bucket_name)
+        # create the cache dir if it does not exist
         if not os.path.isdir(cache):
             os.mkdir(cache)
         self.cache = cache
 
+    # write a python object to the bucket, assumes it is serializable as a json object
+    # used for storing the embedding back to gcs (may be reused)
     def write_json(self, json_data, file_name):
-        print(f"writing to {file_name}")
+        # print(f"writing to {file_name}")
         try:
             blob = self.bucket.blob(file_name)
             blob.upload_from_string(
@@ -35,12 +43,14 @@ class Storage:
         except Exception as e:
             print(f"Error writing JSON to GCS: {e}")
 
+    # reads a json file from gcs location. 
     def read_json(self, file_name):
         blob = self.bucket.blob(file_name)
         blob_contents = blob.download_as_string()
         emb_json = json.loads(blob_contents)
         return emb_json
     
+    # returns true if specified file name exists in bucket
     def exists(self, file_name):
         blob = self.bucket.blob(file_name)
         return blob.exists()

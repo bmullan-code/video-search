@@ -37,7 +37,15 @@ class VideoPath:
             return f"{base}.json"
         except TypeError:  # Handle cases where file_path is not a string or Path
             return None
-    
+
+    def file_name_transcript(self):
+        # return self.file_name().replace(".mp4", ".json")
+        try:
+            base, _ = os.path.splitext(self.file_name()) 
+            return f"{base}.transcript"
+        except TypeError:  # Handle cases where file_path is not a string or Path
+            return None
+
     # returns the gcs storage public url for a gs path 
     # eg. https://storage.googleapis.com/mullan-videos/Wildlife.mp4
     def public_url(self):
