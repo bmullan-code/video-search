@@ -2,7 +2,6 @@
 .cache
 env/
 Wildlife.mp4
-video-search-frontend/
 pinecone_wrapper.py
 .chromadb
 # Byte-compiled / optimized / DLL files

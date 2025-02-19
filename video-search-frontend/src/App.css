@@ -1,0 +1,16 @@
+.App {
+  text-align: center; /* Center content */
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Responsive grid */
+  grid-gap: 10px;
+  padding: 5px;
+}
+
+.video-item {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+}
