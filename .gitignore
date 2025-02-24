@@ -4,6 +4,8 @@ env/
 Wildlife.mp4
 pinecone_wrapper.py
 .chromadb
+.clips
+application_default_credentials.json
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

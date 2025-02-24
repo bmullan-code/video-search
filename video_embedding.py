@@ -9,6 +9,7 @@ from vertexai.vision_models import VideoSegmentConfig
 from moviepy import VideoFileClip
 from storage_wrapper import storage
 from video_path import VideoPath
+from moviepy.editor import VideoFileClip
 
 load_dotenv()
 

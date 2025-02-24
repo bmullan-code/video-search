@@ -13,9 +13,10 @@ class VideoPath:
         self.gcs_path = path
 
     # "Wildlife.mp4"
-    def __init__(self, file_name :str, bucket_name :str = os.environ["BUCKET_NAME"]):
-        self.gcs_path = f"gs://{bucket_name}/{file_name}"
-        print(self.gcs_path)
+    def __init__(self, file_name :str, bucket_name :str = os.environ["BUCKET_NAME"], folder=""):
+        self.folder = folder       
+        self.gcs_path = f"gs://{bucket_name}/{file_name}" if folder == "" else f"gs://{bucket_name}/{folder}/{file_name}"
+        # print(self.gcs_path)
 
     # returns full gcs uri path
     def path(self):
@@ -23,7 +24,7 @@ class VideoPath:
 
     # returns just the filename portion
     def file_name(self):
-        return self.path().split("/")[-1]
+        return self.path().split("/")[-1] if self.folder == "" else self.folder + "/" + self.path().split("/")[-1]
     
     # returns just the bucket name portion
     def bucket_name(self):
@@ -49,11 +50,18 @@ class VideoPath:
     # returns the gcs storage public url for a gs path 
     # eg. https://storage.googleapis.com/mullan-videos/Wildlife.mp4
     def public_url(self):
-        return f"https://storage.googleapis.com/{self.bucket_name()}/{self.file_name()}"
-
+        return f"https://storage.googleapis.com/{self.bucket_name()}/{self.file_name()}" if self.folder == "" else f"https://storage.googleapis.com/{self.bucket_name()}/{self.folder}/{self.file_name()}"
 
 if __name__ == "__main__":
+    video_path = VideoPath("Wildlife.mp4",folder="clips")
+    print("\n")
+    print(video_path.file_name())
+    print(video_path.file_name_json())
+    print(video_path.path())
+    print(video_path.public_url())
+    print("\n")
     video_path = VideoPath("Wildlife.mp4")
     print(video_path.file_name())
     print(video_path.file_name_json())
     print(video_path.path())
+    print(video_path.public_url())

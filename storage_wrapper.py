@@ -25,6 +25,7 @@ class Storage:
         self.location = location 
         self.client = storage.Client(project=self.project)
         self.bucket = self.client.bucket(self.bucket_name)
+        
         # create the cache dir if it does not exist
         if not os.path.isdir(cache):
             os.mkdir(cache)

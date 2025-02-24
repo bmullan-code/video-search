@@ -9,7 +9,7 @@ function App() {
   const handleSearch = async () => {
     try {
       setSearchResults([]);
-      const response = await fetch(`http://127.0.0.1:8000/search_by_text/?text=${searchText}`);
+      const response = await fetch(`/search_by_text/?text=${searchText}`);
       const data = await response.json();
       console.log(data)
       setSearchResults(data);
@@ -24,7 +24,7 @@ function App() {
       const formData = new FormData();
       formData.append('file', image); // Append the selected image
 
-      const response = await fetch('http://127.0.0.1:8000/search_by_image/', {
+      const response = await fetch('/search_by_image', {
         method: 'POST',
         body: formData,
       });

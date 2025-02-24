@@ -1,9 +1,10 @@
 google-cloud
 google-genai
 google-cloud-aiplatform
+functions-framework==3.*
 python-dotenv
 pydantic
-moviepy
+moviepy==1.0.3
 fastapi
 uvicorn
 python-multipart

@@ -9,6 +9,8 @@ from chromadb_wrapper import cdb
 from video_search_results import VideoSearchResults
 from storage_wrapper import storage  # Assuming you have a storage_wrapper module
 from video_path import VideoPath
+from fastapi.staticfiles import StaticFiles
+
 import json, os
 import uvicorn
 
@@ -16,8 +18,12 @@ import uvicorn
 # create a fastapi interface to expose a set of video search rest methods
 
 
+# app = FastAPI()
+
+
 load_dotenv()
 app = FastAPI(title="Video Search API")
+app.mount("/static", StaticFiles(directory="./video-search-frontend/build"), name="static")
 
 origins = [
     "http://localhost",  # Allow requests from localhost
@@ -47,7 +53,6 @@ async def process_video_route(file: UploadFile = File(...)):
             f.write(contents)
         video_emb = ve.get_video_embedding(vpath=vpath)  # Get embeddings
 
-
         records = [
             {
                 "id": f"{vpath.file_name()}:{ve['startOffsetSec']}:{ve['endOffsetSec']}",
@@ -70,8 +75,6 @@ async def process_video_route(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing video: {e}")
 
-
-
 @app.get("/search_by_text/")
 async def search_by_text(text: str, top_k: int = 10):
     """Searches for videos by text query."""
@@ -88,13 +91,18 @@ async def search_by_text(text: str, top_k: int = 10):
 async def search_by_image(file: UploadFile = File(...), top_k: int = 10):
     try:
         image_path = VideoPath(file.filename).path()
+        print(image_path)
         contents = await file.read()
         with open(f"{storage.cache}/{file.filename}", "wb") as f:
             f.write(contents)
-
+        print("contents",len(contents))
+        
         image_emb = ve.get_image_embedding(image_path=f"{storage.cache}/{file.filename}")
+        print("image_emv",len(image_emb))
         results = vector_store.query(image_emb,top_k=top_k)
+        print("results",len(results))
         vsr = VideoSearchResults(results)
+        print("vsr",len(vsr.get_results()))
         return vsr.get_results()
 
     except Exception as e:
