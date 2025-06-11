@@ -7,6 +7,9 @@ from video_path import VideoPath
 from gemini_wrapper import gemini
 from storage_wrapper import storage
 import json,os
+import logging # Added logging
+
+logger = logging.getLogger(__name__) # Added logger
 
 class TranscriptEntry(BaseModel):
     time_start : int
@@ -43,15 +46,17 @@ class VideoTranscript:
         # convert to json object
         self.data = transcript.model_dump(mode="python")
         # write to gcs storage
-        # print(transcript.model_dump(mode="json"))
-        storage.write_json(self.data, self.path.file_name_transcript())
+        # logger.debug(transcript.model_dump(mode="json")) # Changed print to logger.debug
+        storage.write_json(self.data, self.vpath.file_name_transcript()) # Corrected self.path to self.vpath
 
     def chunks(self):
         if self.data is None:
+            # Consider raising a more specific error or logging
+            logger.error("Data not set before calling chunks()")
             raise Exception("data not set")
         
         for te in self.data.transcript:
-            print(te.transcript)
+            logger.info(te.transcript) # Changed print to logger.info
 
     def split_video_into_segments(self, input_file,output_dir = "", segment_length=240):
         """Splits a video into segments of a specified length.
@@ -83,11 +88,13 @@ class VideoTranscript:
                 start_time = end_time
 
             clip.close()
-            print(f"Video '{input_file}' split into segments in '{output_dir}'.")
+            logger.info(f"Video '{input_file}' split into segments in '{output_dir}'.") # Changed print to logger.info
             return output_paths
 
         except Exception as e:
-            print(f"Error splitting video: {e}")
+            logger.error(f"Error splitting video: {e}") # Changed print to logger.error
+            # Depending on desired behavior, you might want to re-raise or return None/empty list
+            return [] # Returning empty list on error
 
     # # Example Usage (replace with your paths):
     # input_video_path = "/path/to/your/video.mp4"
@@ -103,7 +110,7 @@ clips = vt.split_video_into_segments(
     segment_length=120
 )
 
-print(clips)
+logger.info(f"Split video segments: {clips}") # Changed print to logger.info
 # vt.create()
 # vt.chunks()
 
