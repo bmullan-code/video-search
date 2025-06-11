@@ -6,12 +6,13 @@ from storage_wrapper import storage
 from video_search_results import VideoSearchResults
 import json
 # import os # No longer needed
-from chromadb_wrapper import cdb
-from vector_search_wrapper import vs
+# from chromadb_wrapper import cdb # Removed
+# from vector_search_wrapper import vs # Removed
 from video_transcript import VideoTranscript
 # from dotenv import load_dotenv # Removed
 import logging # Added logging
 import config # Added config import
+from vector_store_factory import get_vector_store # Added factory import
 
 # load_dotenv() # Removed
 
@@ -24,7 +25,7 @@ import config # Added config import
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-vector_store = vs if (config.VECTOR_STORE == "VECTOR_SEARCH") else cdb # Use config
+vector_store = get_vector_store() # Use factory
 ve = VideoEmbedding() # VideoEmbedding instance
 
 # Removed get_or_create_video_embedding function
@@ -44,31 +45,20 @@ def process_video(vpath: VideoPath):
         logger.warning(f"No embedding data returned for {vpath.path()}, skipping vector store insertion and transcript.")
         return
 
-    # Transform embeddings into the record structure expected by vector_store.insert
-    # (similar to service.py)
-    records_to_insert = [
-        {
-            "id": f"{vpath.file_name()}:{item['startOffsetSec']}:{item['endOffsetSec']}",
-            "values": item["embedding"],
-            "metadata": {
-                "startOffsetSec": item["startOffsetSec"],
-                "endOffsetSec": item["endOffsetSec"],
-                "videoPath": vpath.path(),
-                "fileName": vpath.file_name(),
-            },
-        }
-        for item in video_emb_data
-    ]
+    # The transformation to 'records_to_insert' is removed.
+    # VectorStoreBase.insert expects raw embedding_results and vpath.
+    # Individual wrappers now handle their specific formatting.
 
-    if not records_to_insert:
-        logger.warning(f"No records to insert for {vpath.path()} after processing embeddings.")
-        return
+    # if not video_emb_data: # This check is already done above
+    #     logger.warning(f"No records to insert for {vpath.path()} after processing embeddings.")
+    #     return
 
     try:
-        vector_store.insert(records=records_to_insert)
-        logger.info(f"Successfully inserted embeddings for {vpath.path()} into vector store.")
+        # Call insert with embedding_results (which is video_emb_data) and vpath
+        vector_store.insert(embedding_results=video_emb_data, vpath=vpath)
+        logger.info(f"Successfully processed embeddings for {vpath.path()} via vector store.")
     except Exception as e:
-        logger.error(f"Failed to insert embeddings for {vpath.path()} into vector store: {e}")
+        logger.error(f"Failed to insert/process embeddings for {vpath.path()} via vector store: {e}")
         return # Stop processing this video if insertion fails
 
     # Create transcript (using gemini)
